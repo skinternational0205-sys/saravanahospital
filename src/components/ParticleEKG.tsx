@@ -3,6 +3,18 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
+const PINK_COLORS = [
+  "rgba(230, 11, 131, 0.8)",
+  "rgba(230, 11, 131, 0.4)",
+  "rgba(255, 100, 180, 0.6)",
+];
+
+/** Density used to derive the particle count from the canvas area. */
+const AREA_PER_PARTICLE = 9000;
+/** Upper bound so large screens never spawn an unbounded particle set. */
+const MAX_PARTICLES = 140;
+const MOUSE_RADIUS = 100;
+
 export default function ParticleEKG() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -10,104 +22,105 @@ export default function ParticleEKG() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const context2d = canvas.getContext("2d");
+    if (!context2d) return;
+
+    // Bind to a non-nullable alias so the closure-scoped Particle class
+    // does not have to re-check for null on every draw call.
+    const ctx: CanvasRenderingContext2D = context2d;
+
+    // Respect users who prefer reduced motion: render a single static frame.
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     let animationFrameId: number;
+    let width = 0;
+    let height = 0;
     let particles: Particle[] = [];
-    
-    // Set canvas dimensions
+    let running = true;
+
+    const mouse = { x: -1000, y: -1000 };
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
     const setDimensions = () => {
       const parent = canvas.parentElement;
-      if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-      }
-    };
-    
-    setDimensions();
-    window.addEventListener("resize", setDimensions);
+      if (!parent) return;
 
-    // Mouse interaction
-    let mouse = { x: -1000, y: -1000, radius: 100 };
-    
+      const rect = parent.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      width = rect.width;
+      height = rect.height;
+
+      // Scale the backing store for crisp rendering on HiDPI displays while
+      // keeping all drawing code in CSS pixel units.
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
     };
-    
+
     const handleMouseLeave = () => {
       mouse.x = -1000;
       mouse.y = -1000;
     };
 
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
-
     class Particle {
       x: number;
       y: number;
-      baseY: number;
       size: number;
       speedX: number;
       offset: number;
       color: string;
 
-      constructor(x: number) {
-        this.x = x;
-        this.baseY = canvas!.height / 2;
-        this.y = this.baseY;
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = height / 2;
         this.size = Math.random() * 2 + 1;
         this.speedX = Math.random() * 1 + 0.5;
         this.offset = Math.random() * 100;
-        
-        // Brand pink and slight variations
-        const colors = ['rgba(230, 11, 131, 0.8)', 'rgba(230, 11, 131, 0.4)', 'rgba(255, 100, 180, 0.6)'];
-        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.color = PINK_COLORS[Math.floor(Math.random() * PINK_COLORS.length)];
       }
 
       update(time: number) {
-        // Move horizontally
         this.x -= this.speedX;
-        
-        // Loop around
+
         if (this.x < 0) {
-          this.x = canvas!.width;
+          this.x = width;
         }
 
-        // Calculate EKG wave shape based on x position
         // Map x to a normalized wave position (0 to 1)
-        const wavePos = (this.x / canvas!.width) * 10; 
-        
+        const wavePos = (this.x / width) * 10;
+
         // Complex sine wave to simulate EKG-like bumps
-        let ekgOffset = Math.sin(wavePos) * 20; 
-        
+        let ekgOffset = Math.sin(wavePos) * 20;
+
         // Add a sharp spike in the middle
-        if (this.x > canvas!.width * 0.4 && this.x < canvas!.width * 0.6) {
-          const spikePos = (this.x - canvas!.width * 0.4) / (canvas!.width * 0.2);
+        if (this.x > width * 0.4 && this.x < width * 0.6) {
+          const spikePos = (this.x - width * 0.4) / (width * 0.2);
           ekgOffset += Math.sin(spikePos * Math.PI * 3) * 80;
         }
 
-        this.baseY = (canvas!.height / 2) + ekgOffset + Math.sin(time * 0.002 + this.offset) * 10;
-        this.y = this.baseY;
+        this.y = height / 2 + ekgOffset + Math.sin(time * 0.002 + this.offset) * 10;
 
-        // Mouse interaction (repel)
+        // Mouse interaction (repel), guarded against divide-by-zero.
         const dx = mouse.x - this.x;
         const dy = mouse.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < mouse.radius) {
-          const forceDirectionX = dx / distance;
-          const forceDirectionY = dy / distance;
-          const force = (mouse.radius - distance) / mouse.radius;
-          
-          this.y -= forceDirectionY * force * 50;
+
+        if (distance > 0 && distance < MOUSE_RADIUS) {
+          const force = (MOUSE_RADIUS - distance) / MOUSE_RADIUS;
+          this.y -= (dy / distance) * force * 50;
         }
       }
 
       draw() {
-        if (!ctx) return;
         ctx.fillStyle = this.color;
         ctx.font = `${this.size * 4}px Arial`;
         ctx.textAlign = "center";
@@ -116,44 +129,76 @@ export default function ParticleEKG() {
       }
     }
 
-    // Initialize particles
     const init = () => {
-      particles = [];
-      const numberOfParticles = (canvas.width * canvas.height) / 3000;
-      for (let i = 0; i < numberOfParticles; i++) {
-        particles.push(new Particle(Math.random() * canvas.width));
-      }
+      const count = Math.min(
+        Math.round((width * height) / AREA_PER_PARTICLE),
+        MAX_PARTICLES,
+      );
+      particles = Array.from({ length: count }, () => new Particle());
     };
 
-    init();
+    const drawFrame = (time = 0) => {
+      ctx.clearRect(0, 0, width, height);
 
-    // Animation Loop
-    const animate = (time: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
       // Draw a subtle connecting line behind particles for the EKG
       ctx.beginPath();
-      ctx.moveTo(0, canvas.height / 2);
-      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.moveTo(0, height / 2);
+      ctx.lineTo(width, height / 2);
       ctx.strokeStyle = "rgba(230, 11, 131, 0.05)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      for (let i = 0; i < particles.length; i++) {
-        particles[i].update(time);
-        particles[i].draw();
+      for (const particle of particles) {
+        particle.update(time);
+        particle.draw();
       }
-      
+    };
+
+    const animate = (time: number) => {
+      if (!running) return;
+      drawFrame(time);
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate(0);
+    const handleResize = () => {
+      setDimensions();
+      init();
+      if (prefersReducedMotion) drawFrame();
+    };
+
+    const handleVisibilityChange = () => {
+      if (prefersReducedMotion) return;
+
+      if (document.hidden) {
+        running = false;
+        cancelAnimationFrame(animationFrameId);
+      } else if (!running) {
+        running = true;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+
+    setDimensions();
+    init();
+
+    if (prefersReducedMotion) {
+      drawFrame();
+    } else {
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      window.removeEventListener("resize", setDimensions);
+      running = false;
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
@@ -161,10 +206,11 @@ export default function ParticleEKG() {
     <div className="relative w-full max-w-lg aspect-square mx-auto flex items-center justify-center">
       {/* Background Glow */}
       <div className="absolute inset-0 bg-brand-pink/5 blur-[100px] rounded-full pointer-events-none" />
-      
+
       {/* The Canvas */}
-      <canvas 
-        ref={canvasRef} 
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
         className="w-full h-full z-10 cursor-crosshair rounded-3xl"
       />
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, CheckCircle2, FileText, Phone } from "lucide-react";
+import { ShieldCheck, FileText, Phone } from "lucide-react";
 
 export default function InsurancePage() {
   const fadeInUp = {

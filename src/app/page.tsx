@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Stethoscope, HeartPulse, Activity, BedDouble, Ambulance, TestTube, Droplet, Pill,
-  ArrowRight, CalendarCheck, Video, Microscope, ShieldCheck, Quote, Play, CheckCircle2
+  ArrowRight, CalendarCheck, Video, Microscope, ShieldCheck, Quote, CheckCircle2
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -16,7 +17,7 @@ const facilities = [
   { name: "Dialysis", icon: Activity },
   { name: "ICU", icon: BedDouble },
   { name: "Ambulance Service", icon: Ambulance },
-  { name: "Laboratory & Diagonstics", icon: TestTube },
+  { name: "Laboratory & Diagnostics", icon: TestTube },
   { name: "Blood Bank", icon: Droplet },
   { name: "Pharmacy", icon: Pill },
 ];
@@ -87,8 +88,8 @@ export default function Home() {
               </div>
               
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6">
-                Two Decades of <br/>
-                <span className="text-brand-pink">Excellence</span> in Care.
+                Serving Salem Since <br/>
+                <span className="text-brand-pink">1993</span>.
               </h1>
               
               <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed max-w-lg">
@@ -158,7 +159,13 @@ export default function Home() {
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-brand-pink rounded-full blur-3xl opacity-10 translate-x-4 translate-y-4"></div>
-                <img src="/images/ashok.jpg" alt="Dr. S. Ashok" className="w-full max-w-md mx-auto rounded-full object-cover shadow-2xl border-8 border-white relative z-10" />
+                <Image
+                  src="/images/ashok.jpg"
+                  alt="Dr. S. Ashok, MD & Chief Medical Officer"
+                  width={400}
+                  height={500}
+                  className="w-full max-w-md mx-auto rounded-full object-cover shadow-2xl border-8 border-white relative z-10"
+                />
               </div>
             </motion.div>
             
@@ -172,7 +179,7 @@ export default function Home() {
               </h2>
               <div className="space-y-4 text-gray-600 text-lg leading-relaxed mb-8">
                 <p>
-                  We take this opportunity to thank our entire team of Saravana Hospital for having persistently served the human community for the last 25 years. 
+                  We take this opportunity to thank our entire team of Saravana Hospital for having persistently served the human community for over three decades.
                 </p>
                 <p>
                   Today, Saravana Hospital is one of the leading healthcare centres in Salem City offering Multi Speciality integrated Care with uncompromising international Standards.
@@ -284,7 +291,7 @@ export default function Home() {
                 <div>
                   <Quote size={32} className="text-gray-300 mb-6" />
                   <p className="text-gray-700 leading-relaxed mb-8">
-                    "{testi.text}"
+                    &ldquo;{testi.text}&rdquo;
                   </p>
                 </div>
                 <div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CalendarCheck, User, Phone, Mail, FileText, Send } from "lucide-react";
+import { CalendarCheck, User, Phone, FileText, Send } from "lucide-react";
 
 export default function AppointmentPage() {
   const fadeInUp = {

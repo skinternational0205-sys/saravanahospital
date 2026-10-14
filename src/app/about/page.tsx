@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Target, Eye, Award } from "lucide-react";
+import Image from "next/image";
+import { Target, Eye } from "lucide-react";
 
 export default function AboutPage() {
   const fadeInUp = {
@@ -54,7 +55,13 @@ export default function AboutPage() {
             className="relative"
           >
             <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative">
-              <img src="/images/b1_1.jpeg" alt="Hospital Building" className="w-full h-full object-cover" />
+              <Image
+                src="/images/b1_1.jpeg"
+                alt="Saravana Hospital building in Salem"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-brand-pink/20"></div>
             </div>
           </motion.div>

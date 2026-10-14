@@ -1,17 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, X } from "lucide-react";
 
 export default function VideoModal({ videoId, coverImage }: { videoId: string, coverImage: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <>
@@ -20,10 +16,12 @@ export default function VideoModal({ videoId, coverImage }: { videoId: string, c
         className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl cursor-pointer group"
         onClick={() => setIsOpen(true)}
       >
-        <img 
-          src={coverImage} 
-          alt="Video Cover" 
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        <Image
+          src={coverImage}
+          alt="Video Cover"
+          fill
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
         
@@ -39,7 +37,7 @@ export default function VideoModal({ videoId, coverImage }: { videoId: string, c
 
       {/* Fullscreen Video Modal using Portal to escape parent transforms */}
       <AnimatePresence>
-        {isOpen && mounted && createPortal(
+        {isOpen && createPortal(
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

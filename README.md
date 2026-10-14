@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Salem Saravana Hospital — Marketing Website
 
-## Getting Started
+A statically rendered marketing site for Salem Saravana Hospital, a 60-bed
+multi-speciality integrated hospital in Salem, Tamil Nadu (est. 1993).
 
-First, run the development server:
+## Tech stack
+
+| Concern    | Choice                                       |
+| ---------- | -------------------------------------------- |
+| Framework  | Next.js 16.3.1 (App Router, Turbopack)       |
+| UI runtime | React 19.2                                   |
+| Language   | TypeScript (strict)                          |
+| Styling    | Tailwind CSS v4 (`@tailwindcss/typography`)  |
+| Animation  | Framer Motion                                |
+| Icons      | lucide-react                                 |
+
+> **Note for contributors:** this Next.js version has breaking changes relative
+> to older releases. Read the bundled docs in `node_modules/next/dist/docs/`
+> before writing code — see `AGENTS.md`.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build    # production build + type check
+npm run start    # serve the production build
+npm run lint     # eslint
+npx tsc --noEmit # type check only
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+src/
+  app/                      # App Router routes (one folder per URL)
+    layout.tsx              # Root layout: fonts, metadata, JSON-LD, Header/Footer
+    page.tsx                # Home
+    about/ appointment/ careers/ contact/ fmtalks/ gallery/
+    health-packages/ insurance/ laboratory/ pharmacy/
+    specialities/
+      page.tsx              # Speciality index grid
+      [slug]/page.tsx       # Speciality detail (SSG via generateStaticParams)
+    sitemap.ts robots.ts    # Generated sitemap.xml and robots.txt
+  components/               # Header, Footer, ParticleEKG, VideoModal
+  data/specialities.json    # Speciality content (name, slug, HTML body)
+  lib/site.ts               # Canonical URL, NAP details, social links
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Per-route metadata
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Page components are client components (`"use client"`, required for Framer
+Motion), and per the Next.js metadata rules the `metadata` export is only read
+from Server Components. Each route therefore has a sibling `layout.tsx` that
+exports the route's `metadata` and renders `children` unchanged. The root
+layout owns `metadataBase`, the title template (`%s | Salem Saravana Hospital`)
+and the `Hospital` JSON-LD block.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Adding a speciality
 
-## Deploy on Vercel
+1. Append an entry to `src/data/specialities.json` (`id`, `name`, `slug`,
+   `content` as an HTML string).
+2. That's it — the index grid, `generateStaticParams`, per-page metadata and
+   `sitemap.xml` all derive from that array.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Site-wide constants
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Hospital address, phone numbers, email addresses and social links live in
+`src/lib/site.ts`. Update them there rather than inline in components.
+
+## Notes
+
+- **No backend.** All forms (`/appointment`, `/contact`, `/careers`,
+  `/pharmacy`) are presentational UI shells; submissions are not sent
+  anywhere. Wiring them up requires a form endpoint or server action.
+- The `/gallery` images are Unsplash placeholders and `/health-packages`
+  package cards are non-linked; replace with real hospital photography and
+  package detail pages before launch.

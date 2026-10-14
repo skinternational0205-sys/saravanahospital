@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 
 export default function GalleryPage() {
@@ -55,10 +56,12 @@ export default function GalleryPage() {
               key={idx} variants={fadeInUp}
               className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg group cursor-pointer"
             >
-              <img 
-                src={src} 
-                alt={`Hospital Gallery ${idx + 1}`} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+              <Image
+                src={src}
+                alt={`Salem Saravana Hospital facility ${idx + 1}`}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
               />
               <div className="absolute inset-0 bg-gray-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">

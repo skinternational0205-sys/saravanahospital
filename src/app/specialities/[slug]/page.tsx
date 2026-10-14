@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Stethoscope } from "lucide-react";
 import specialitiesData from "@/data/specialities.json";
+
+type Speciality = (typeof specialitiesData)[number];
+
+type SpecialityPageProps = {
+  params: Promise<{ slug: string }>;
+};
 
 // For static site generation (optional but good for performance)
 export function generateStaticParams() {
@@ -10,9 +17,44 @@ export function generateStaticParams() {
   }));
 }
 
-export default async function SpecialityPage({ params }: { params: Promise<{ slug: string }> }) {
+/** Strip the scraped markup down to plain text for the meta description. */
+function plainText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export async function generateMetadata({ params }: SpecialityPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const spec: Speciality | undefined = specialitiesData.find((s) => s.slug === slug);
+
+  if (!spec) {
+    return { title: "Speciality Not Found" };
+  }
+
+  const description = plainText(spec.content).slice(0, 160);
+
+  return {
+    title: spec.name,
+    description,
+    alternates: { canonical: `/specialities/${spec.slug}` },
+    openGraph: {
+      type: "article",
+      title: `${spec.name} | Salem Saravana Hospital`,
+      description,
+      url: `/specialities/${spec.slug}`,
+    },
+  };
+}
+
+export default async function SpecialityPage({ params }: SpecialityPageProps) {
   const resolvedParams = await params;
-  const spec = specialitiesData.find((s) => s.slug === resolvedParams.slug);
+  const spec: Speciality | undefined = specialitiesData.find(
+    (s) => s.slug === resolvedParams.slug,
+  );
 
   if (!spec) {
     notFound();

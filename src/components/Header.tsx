@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -28,11 +29,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
-
   return (
     <>
       <header 
@@ -44,7 +40,14 @@ export default function Header() {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/images/ssh-logo.png" alt="Salem Saravana Hospital" className="h-9 md:h-[42px] w-auto" />
+                <Image
+                  src="/images/ssh-logo.png"
+                  alt="Salem Saravana Hospital"
+                  width={255}
+                  height={90}
+                  priority
+                  className="h-9 md:h-[42px] w-auto"
+                />
               </Link>
             </div>
 
@@ -115,7 +118,13 @@ export default function Header() {
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <Link href="/">
-                <img src="/images/ssh-logo.png" alt="Salem Saravana Hospital" className="h-9 w-auto" />
+                <Image
+                  src="/images/ssh-logo.png"
+                  alt="Salem Saravana Hospital"
+                  width={255}
+                  height={90}
+                  className="h-9 w-auto"
+                />
               </Link>
               <button 
                 className="text-gray-900 p-2"
@@ -133,6 +142,7 @@ export default function Header() {
                     <Link 
                       key={link.name} 
                       href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={`text-2xl font-bold transition-colors ${
                         isActive ? "text-brand-pink" : "text-gray-900"
                       }`}
@@ -146,6 +156,7 @@ export default function Header() {
               <div className="mt-auto pt-8 border-t border-gray-100">
                 <Link 
                   href="/appointment" 
+                  onClick={() => setMobileMenuOpen(false)}
                   className="bg-brand-pink text-white text-center font-bold text-lg px-6 py-4 rounded-xl shadow-lg block w-full"
                 >
                   Book Appointment

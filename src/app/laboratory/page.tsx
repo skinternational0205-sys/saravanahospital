@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Microscope, CheckCircle2, Phone, Mail } from "lucide-react";
 
 export default function LaboratoryPage() {
@@ -65,7 +66,13 @@ export default function LaboratoryPage() {
             className="space-y-8"
           >
             <div className="rounded-3xl overflow-hidden shadow-2xl aspect-[4/3] relative">
-              <img src="/images/b1_1.jpeg" alt="Laboratory" className="w-full h-full object-cover" />
+              <Image
+                src="/images/b1_1.jpeg"
+                alt="Laboratory and diagnostics facility"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-brand-pink/20 mix-blend-overlay"></div>
             </div>
 
